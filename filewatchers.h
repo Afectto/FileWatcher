@@ -13,24 +13,26 @@
 
 using namespace std;
 
-namespace fs = filesystem;
-
 class FileWatcher : public QObject {
     Q_OBJECT
 public:
     explicit FileWatcher(QObject* parent = nullptr);
-    void addFile(const string& filePath);
     void startWatching();
 
-signals:
-    void fileExists(const string& fileName, uintmax_t size);
-    void fileChanged(const string& fileName, uintmax_t newSize);
-    void fileNotFound(const string& fileName);
+private:
+    void connectSignals();
 
+private slots:
+    void onFileAdded(const string& filePath);
+
+    void onFileRemoved(const string& filePath);
+
+    void onFileSizeChanged(const string& filePath, qint64 newSize);
+
+    void onFileNotFound(const string& filePath);
 private:
     void checkFileStatus(const string& filePath);
-
-    map<string, uintmax_t> _files;
+    std::map<std::string, bool> _fileExistNotified;
 };
 
 #endif // FILEWATCHERS_H

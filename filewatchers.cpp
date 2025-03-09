@@ -1,23 +1,20 @@
 #include "filewatchers.h"
+#include "filestorage.h"
+#include <filesystem>
+#include <QCoreApplication>
 
-FileWatcher::FileWatcher(QObject* parent) : QObject(parent) {}
+namespace fs = filesystem;
 
-void FileWatcher::addFile(const string& filePath)
+FileWatcher::FileWatcher(QObject* parent) : QObject(parent)
 {
-    if (!fs::exists(filePath))
-    {
-        emit fileNotFound(filePath);
-        return;
-    }
-    _files[filePath] = fs::file_size(filePath);
-    emit fileExists(filePath, _files[filePath]);
+    connectSignals();
 }
 
 void FileWatcher::startWatching()
 {
     while (true)
     {
-        for (const auto& [filePath, _] : _files)
+        for (const auto& [filePath, _] : FileStorage::getInstance().getFiles())
         {
             checkFileStatus(filePath);
         }
@@ -25,19 +22,47 @@ void FileWatcher::startWatching()
     }
 }
 
+void FileWatcher::connectSignals()
+{
+    connect(&FileStorage::getInstance(), &FileStorage::fileAdded, this, &FileWatcher::onFileAdded);
+    connect(&FileStorage::getInstance(), &FileStorage::fileRemoved, this, &FileWatcher::onFileRemoved);
+    connect(&FileStorage::getInstance(), &FileStorage::fileSizeChanged, this, &FileWatcher::onFileSizeChanged);
+    connect(&FileStorage::getInstance(), &FileStorage::fileNotFound, this, &FileWatcher::onFileNotFound);
+}
+
+void FileWatcher::onFileAdded(const string &filePath)
+{
+    qDebug() << "File added:" << filePath;
+}
+
+void FileWatcher::onFileRemoved(const string &filePath)
+{
+    qDebug() << "File removed:" << filePath;
+}
+
+void FileWatcher::onFileSizeChanged(const string &filePath, qint64 newSize)
+{
+    qDebug() << "File size changed:" << filePath << "New size:" << newSize;
+}
+
+void FileWatcher::onFileNotFound(const string &filePath)
+{
+    qDebug() << "File not found:" << filePath;
+}
+
 void FileWatcher::checkFileStatus(const string& filePath)
 {
     if (!fs::exists(filePath))
     {
-        emit fileNotFound(filePath);
+        FileStorage::getInstance().removeFile(filePath);
         return;
     }
 
     uintmax_t fileSize = fs::file_size(filePath);
-    if (fileSize != _files[filePath])
-    {
-        emit fileChanged(filePath, fileSize);
-    }
+    auto files = FileStorage::getInstance().getFiles();
 
-    _files[filePath] = fileSize;
+    if (files[filePath] != fileSize)
+    {
+        FileStorage::getInstance().updateFileSize(filePath); // Обновление размера файла
+    }
 }
