@@ -9,6 +9,7 @@ CONFIG += c++17 cmdline
 SOURCES += \
         filestorage.cpp \
         filewatchers.cpp \
+        logger.cpp \
         main.cpp
 
 # Default rules for deployment.
@@ -18,4 +19,5 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 HEADERS += \
     filestorage.h \
-    filewatchers.h
+    filewatchers.h \
+    logger.h
