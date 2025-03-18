@@ -30,6 +30,7 @@ private slots:
 private:
     void checkFileStatus(const QString& filePath);
     std::map<QString, bool> _fileExistNotified;
+    void StartCheckStatus(const QString &filePath);
 };
 
 #endif // FILEWATCHERS_H

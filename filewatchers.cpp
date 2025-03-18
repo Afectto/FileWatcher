@@ -1,5 +1,6 @@
 #include "filewatchers.h"
 #include "filestorage.h"
+#include "logger.h"
 #include <QCoreApplication>
 
 FileWatcher::FileWatcher(QObject* parent) : QObject(parent)
@@ -9,6 +10,11 @@ FileWatcher::FileWatcher(QObject* parent) : QObject(parent)
 
 void FileWatcher::startWatching()
 {
+    for (const auto& [filePath, _] : FileStorage::getInstance().getFiles())
+    {
+        StartCheckStatus(filePath);
+    }
+
     while (true)
     {
         for (const auto& [filePath, _] : FileStorage::getInstance().getFiles())
@@ -29,22 +35,22 @@ void FileWatcher::connectSignals()
 
 void FileWatcher::onFileAdded(const QString &filePath)
 {
-    qDebug() << "File added:" << filePath;
+    Logger::logFileAdded(filePath);
 }
 
 void FileWatcher::onFileRemoved(const QString &filePath)
 {
-    qDebug() << "File removed:" << filePath;
+    Logger::logFileRemoved(filePath);
 }
 
 void FileWatcher::onFileSizeChanged(const QString &filePath, qint64 newSize)
 {
-    qDebug() << "File size changed:" << filePath << "New size:" << newSize;
+    Logger::logFileSizeChanged(filePath, newSize);
 }
 
 void FileWatcher::onFileNotFound(const QString &filePath)
 {
-    qDebug() << "File not found:" << filePath;
+    Logger::logFileNotFound(filePath);
 }
 
 void FileWatcher::checkFileStatus(const QString& filePath)
@@ -62,5 +68,14 @@ void FileWatcher::checkFileStatus(const QString& filePath)
     if (files[filePath] != fileSize)
     {
         FileStorage::getInstance().updateFileSize(filePath); // Обновление размера файла
+    }
+}
+
+void FileWatcher::StartCheckStatus(const QString& filePath)
+{
+    QFileInfo fInfo = QFileInfo(filePath);
+    if (fInfo.exists())
+    {
+        Logger::logCurrentSize(filePath, fInfo.size());
     }
 }
