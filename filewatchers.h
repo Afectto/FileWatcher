@@ -3,13 +3,10 @@
 
 #include <QObject>
 #include <QThread>
-#include <iostream>
-#include <fstream>
-#include <filesystem>
 #include <io.h>
 #include <fcntl.h>
-#include <chrono>
-#include <thread>
+#include <QTextStream>
+#include <QDebug>
 
 using namespace std;
 
@@ -23,16 +20,16 @@ private:
     void connectSignals();
 
 private slots:
-    void onFileAdded(const string& filePath);
+    void onFileAdded(const QString& filePath);
 
-    void onFileRemoved(const string& filePath);
+    void onFileRemoved(const QString& filePath);
 
-    void onFileSizeChanged(const string& filePath, qint64 newSize);
+    void onFileSizeChanged(const QString& filePath, qint64 newSize);
 
-    void onFileNotFound(const string& filePath);
+    void onFileNotFound(const QString& filePath);
 private:
-    void checkFileStatus(const string& filePath);
-    std::map<std::string, bool> _fileExistNotified;
+    void checkFileStatus(const QString& filePath);
+    std::map<QString, bool> _fileExistNotified;
 };
 
 #endif // FILEWATCHERS_H

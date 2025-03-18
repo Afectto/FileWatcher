@@ -1,42 +1,39 @@
 #include "filestorage.h"
-#include <iostream>
 
 FileStorage& FileStorage::getInstance() {
     static FileStorage instance;
     return instance;
 }
 
-void FileStorage::addFile(const string& filePath)
+void FileStorage::addFile(const QString& filePath)
 {
-    lock_guard<mutex> lock(_mutex);
-    if (!fs::exists(filePath))
+    QFileInfo fInfo = QFileInfo(filePath);
+    if (!fInfo.exists())
     {
         emit fileNotFound(filePath);
         return;
     }
-    uintmax_t fileSize = fs::file_size(filePath);
+    qint64 fileSize = fInfo.size();
     _files[filePath] = fileSize;
     emit fileAdded(filePath);
 }
 
-void FileStorage::updateFileSize(const string& filePath)
+void FileStorage::updateFileSize(const QString& filePath)
 {
-    lock_guard<mutex> lock(_mutex);
-    if (!fs::exists(filePath)) return;
-    uintmax_t fileSize = fs::file_size(filePath);
+    QFileInfo fInfo = QFileInfo(filePath);
+    if (!fInfo.exists()) return;
+    qint64 fileSize = fInfo.size();
     _files[filePath] = fileSize;
     emit fileSizeChanged(filePath, fileSize);
 }
 
-void FileStorage::removeFile(const string& filePath)
+void FileStorage::removeFile(const QString& filePath)
 {
-    lock_guard<mutex> lock(_mutex);
     _files.erase(filePath);
     emit fileRemoved(filePath);
 }
 
-map<string, uintmax_t> FileStorage::getFiles() const
+map<QString, qint64> FileStorage::getFiles() const
 {
-    lock_guard<mutex> lock(_mutex);
     return _files;
 }

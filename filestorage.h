@@ -4,25 +4,24 @@
 #include <map>
 #include <string>
 #include <mutex>
-#include <filesystem>
+#include <QFileInfo>
 
 using namespace std;
-namespace fs = filesystem;
 
 class FileStorage : public QObject {
     Q_OBJECT
 public:
     static FileStorage& getInstance();
-    void addFile(const string& filePath);
-    void removeFile(const string& filePath);
-    map<string, uintmax_t> getFiles() const;
-    void updateFileSize(const string &filePath);
+    void addFile(const QString& filePath);
+    void removeFile(const QString& filePath);
+    map<QString, qint64> getFiles() const;
+    void updateFileSize(const QString &filePath);
 
 signals:
-    void fileAdded(const string& filePath);
-    void fileRemoved(const string& filePath);
-    void fileSizeChanged(const string& filePath, uintmax_t newSize);
-    void fileNotFound(const string& filePath);
+    void fileAdded(const QString& filePath);
+    void fileRemoved(const QString& filePath);
+    void fileSizeChanged(const QString& filePath, qint64 newSize);
+    void fileNotFound(const QString& filePath);
 
 private:
     FileStorage() = default;
@@ -30,8 +29,7 @@ private:
     FileStorage(const FileStorage&) = delete;
     FileStorage& operator=(const FileStorage&) = delete;
 
-    map<string, uintmax_t> _files;
-    mutable mutex _mutex;
+    map<QString, qint64> _files;
 };
 
 
