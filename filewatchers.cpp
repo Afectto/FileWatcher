@@ -1,9 +1,6 @@
 #include "filewatchers.h"
 #include "filestorage.h"
-#include <filesystem>
 #include <QCoreApplication>
-
-namespace fs = filesystem;
 
 FileWatcher::FileWatcher(QObject* parent) : QObject(parent)
 {
@@ -30,35 +27,36 @@ void FileWatcher::connectSignals()
     connect(&FileStorage::getInstance(), &FileStorage::fileNotFound, this, &FileWatcher::onFileNotFound);
 }
 
-void FileWatcher::onFileAdded(const string &filePath)
+void FileWatcher::onFileAdded(const QString &filePath)
 {
     qDebug() << "File added:" << filePath;
 }
 
-void FileWatcher::onFileRemoved(const string &filePath)
+void FileWatcher::onFileRemoved(const QString &filePath)
 {
     qDebug() << "File removed:" << filePath;
 }
 
-void FileWatcher::onFileSizeChanged(const string &filePath, qint64 newSize)
+void FileWatcher::onFileSizeChanged(const QString &filePath, qint64 newSize)
 {
     qDebug() << "File size changed:" << filePath << "New size:" << newSize;
 }
 
-void FileWatcher::onFileNotFound(const string &filePath)
+void FileWatcher::onFileNotFound(const QString &filePath)
 {
     qDebug() << "File not found:" << filePath;
 }
 
-void FileWatcher::checkFileStatus(const string& filePath)
+void FileWatcher::checkFileStatus(const QString& filePath)
 {
-    if (!fs::exists(filePath))
+    QFileInfo fInfo = QFileInfo(filePath);
+    if (!fInfo.exists())
     {
         FileStorage::getInstance().removeFile(filePath);
         return;
     }
 
-    uintmax_t fileSize = fs::file_size(filePath);
+    qint64 fileSize = fInfo.size();
     auto files = FileStorage::getInstance().getFiles();
 
     if (files[filePath] != fileSize)

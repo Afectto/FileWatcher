@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
     {
         QString line = qin.readLine();
         if (line == "exit") break;
-        observer.addFile(line.toStdString());
+        observer.addFile(line);
     }
     QThread::create([&watcher]() { watcher.startWatching(); })->start();
     return a.exec();
