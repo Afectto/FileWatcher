@@ -15,5 +15,7 @@ public:
     static void logFileNotFound(const QString& filePath);
 
     static void logCurrentSize(const QString& filePath, qint64 size);
+    static void logFileRestored(const QString& filePath, qint64 size);
+    static void logFileAlreadyExists(const QString &filePath);
 };
 #endif // LOGGER_H

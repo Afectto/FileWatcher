@@ -31,6 +31,8 @@ void FileWatcher::connectSignals()
     connect(&FileStorage::getInstance(), &FileStorage::fileRemoved, this, &FileWatcher::onFileRemoved);
     connect(&FileStorage::getInstance(), &FileStorage::fileSizeChanged, this, &FileWatcher::onFileSizeChanged);
     connect(&FileStorage::getInstance(), &FileStorage::fileNotFound, this, &FileWatcher::onFileNotFound);
+    connect(&FileStorage::getInstance(), &FileStorage::fileExistenceChanged, this, &FileWatcher::onFileExistenceChanged);
+    connect(&FileStorage::getInstance(), &FileStorage::fileAlreadyExists, this, &FileWatcher::onFileAlreadyExists);
 }
 
 void FileWatcher::onFileAdded(const QString &filePath)
@@ -53,22 +55,33 @@ void FileWatcher::onFileNotFound(const QString &filePath)
     Logger::logFileNotFound(filePath);
 }
 
+void FileWatcher::onFileExistenceChanged(const QString& filePath, bool exists, qint64 size)
+{
+    if (exists) {
+        Logger::logFileRestored(filePath, size);
+    } else {
+        Logger::logFileNotFound(filePath);
+    }
+}
+
+void FileWatcher::onFileAlreadyExists(const QString& filePath)
+{
+    Logger::logFileAlreadyExists(filePath);
+}
+
 void FileWatcher::checkFileStatus(const QString& filePath)
 {
-    QFileInfo fInfo = QFileInfo(filePath);
-    if (!fInfo.exists())
-    {
-        FileStorage::getInstance().removeFile(filePath);
-        return;
-    }
+    QFileInfo fInfo(filePath);
+    bool existsNow = fInfo.exists();
+    qint64 sizeNow = existsNow ? fInfo.size() : 0;
 
-    qint64 fileSize = fInfo.size();
     auto files = FileStorage::getInstance().getFiles();
-
-    if (files[filePath] != fileSize)
-    {
-        FileStorage::getInstance().updateFileSize(filePath); // Обновление размера файла
+    //Проверяем поменялось ли что то
+    if (existsNow && files[filePath] != sizeNow) {
+        FileStorage::getInstance().updateFileSize(filePath);
     }
+    //Обновляем существование файла
+    FileStorage::getInstance().setFileExistence(filePath, existsNow);
 }
 
 void FileWatcher::StartCheckStatus(const QString& filePath)
@@ -76,6 +89,7 @@ void FileWatcher::StartCheckStatus(const QString& filePath)
     QFileInfo fInfo = QFileInfo(filePath);
     if (fInfo.exists())
     {
-        Logger::logCurrentSize(filePath, fInfo.size());
+        qint64 newSize = fInfo.size();
+        Logger::logCurrentSize(filePath, newSize);
     }
 }

@@ -19,3 +19,11 @@ void Logger::logFileNotFound(const QString &filePath) {
 void Logger::logCurrentSize(const QString &filePath, qint64 size) {
     qDebug() << "[LOG] File:" << filePath << " Size: " << size;
 }
+
+void Logger::logFileRestored(const QString &filePath, qint64 size) {
+    qDebug() << "[LOG] File restored:" << filePath << "Size:" << size;
+}
+
+void Logger::logFileAlreadyExists(const QString &filePath){
+    qDebug() << "[LOG] File Already Exists:" << filePath ;
+}
